@@ -1,6 +1,11 @@
 import unittest
 
-from block_markdown import BlockType, block_to_block_type, markdown_to_blocks
+from block_markdown import (
+    BlockType,
+    block_to_block_type,
+    markdown_to_blocks,
+    markdown_to_html_node,
+)
 
 
 class TestMarkdownToBlocks(unittest.TestCase):
@@ -85,6 +90,58 @@ This is the same paragraph on a new line
         )
         self.assertEqual(
             block_to_block_type("2. second\n3. third"), BlockType.PARAGRAPH
+        )
+
+    def test_markdown_to_html_node_paragraphs(self):
+        markdown = """
+This is **bolded** paragraph
+text in a p
+tag here
+
+This is another paragraph with _italic_ text and `code` here
+"""
+        node = markdown_to_html_node(markdown)
+        self.assertEqual(
+            node.to_html(),
+            "<div><p>This is <b>bolded</b> paragraph text in a p tag here</p>"
+            "<p>This is another paragraph with <i>italic</i> text and "
+            "<code>code</code> here</p></div>",
+        )
+
+    def test_markdown_to_html_node_code_block(self):
+        markdown = """
+```
+This is text that _should_ remain
+the **same** even with inline stuff
+```
+"""
+        node = markdown_to_html_node(markdown)
+        self.assertEqual(
+            node.to_html(),
+            "<div><pre><code>This is text that _should_ remain\n"
+            "the **same** even with inline stuff\n</code></pre></div>",
+        )
+
+    def test_markdown_to_html_node_heading_quote_and_lists(self):
+        markdown = """
+## Heading
+
+> A quote
+> with **bold** text
+
+- first item
+- second item
+
+1. ordered item
+2. another item
+"""
+        node = markdown_to_html_node(markdown)
+        self.assertEqual(
+            node.to_html(),
+            "<div><h2>Heading</h2>"
+            "<blockquote>A quote with <b>bold</b> text</blockquote>"
+            "<ul><li>first item</li><li>second item</li></ul>"
+            "<ol><li>ordered item</li><li>another item</li></ol></div>",
         )
 
 
