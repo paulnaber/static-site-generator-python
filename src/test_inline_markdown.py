@@ -6,6 +6,7 @@ from inline_markdown import (
     split_nodes_delimiter,
     split_nodes_image,
     split_nodes_link,
+    text_to_textnodes,
 )
 from textnode import TextNode, TextType
 
@@ -191,6 +192,46 @@ class TestSplitNodesDelimiter(unittest.TestCase):
                 [TextNode("![alt](https://example.com/image.png)", TextType.TEXT)]
             ),
             [TextNode("alt", TextType.IMAGE, "https://example.com/image.png")],
+        )
+
+    def test_text_to_textnodes_with_all_inline_types(self):
+        nodes = text_to_textnodes(
+            "This is **text** with an _italic_ word and a `code block` "
+            "and an ![obi wan image](https://i.imgur.com/fJRm4Vk.jpeg) "
+            "and a [link](https://boot.dev)"
+        )
+        self.assertListEqual(
+            nodes,
+            [
+                TextNode("This is ", TextType.TEXT),
+                TextNode("text", TextType.BOLD),
+                TextNode(" with an ", TextType.TEXT),
+                TextNode("italic", TextType.ITALIC),
+                TextNode(" word and a ", TextType.TEXT),
+                TextNode("code block", TextType.CODE),
+                TextNode(" and an ", TextType.TEXT),
+                TextNode(
+                    "obi wan image",
+                    TextType.IMAGE,
+                    "https://i.imgur.com/fJRm4Vk.jpeg",
+                ),
+                TextNode(" and a ", TextType.TEXT),
+                TextNode("link", TextType.LINK, "https://boot.dev"),
+            ],
+        )
+
+    def test_text_to_textnodes_with_plain_text(self):
+        node = TextNode("plain text", TextType.TEXT)
+        self.assertListEqual([node], text_to_textnodes("plain text"))
+
+    def test_text_to_textnodes_with_multiple_formats(self):
+        self.assertListEqual(
+            [
+                TextNode("bold", TextType.BOLD),
+                TextNode(" and ", TextType.TEXT),
+                TextNode("more bold", TextType.BOLD),
+            ],
+            text_to_textnodes("**bold** and **more bold**"),
         )
 
 
