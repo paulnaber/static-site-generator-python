@@ -1,6 +1,6 @@
 import unittest
 
-from textnode import TextNode, TextType
+from textnode import TextNode, TextType, text_node_to_html_node
 
 
 class TestTextNode(unittest.TestCase):
@@ -23,6 +23,48 @@ class TestTextNode(unittest.TestCase):
         node = TextNode("Same text", TextType.BOLD)
         node2 = TextNode("Same text", TextType.ITALIC)
         self.assertNotEqual(node, node2)
+
+    def test_text(self):
+        node = TextNode("This is a text node", TextType.TEXT)
+        html_node = text_node_to_html_node(node)
+        self.assertIsNone(html_node.tag)
+        self.assertEqual(html_node.value, "This is a text node")
+
+    def test_bold(self):
+        html_node = text_node_to_html_node(TextNode("bold", TextType.BOLD))
+        self.assertEqual(html_node.to_html(), "<b>bold</b>")
+
+    def test_italic(self):
+        html_node = text_node_to_html_node(TextNode("italic", TextType.ITALIC))
+        self.assertEqual(html_node.to_html(), "<i>italic</i>")
+
+    def test_code(self):
+        html_node = text_node_to_html_node(TextNode("code", TextType.CODE))
+        self.assertEqual(html_node.to_html(), "<code>code</code>")
+
+    def test_link(self):
+        html_node = text_node_to_html_node(
+            TextNode("Boot.dev", TextType.LINK, "https://www.boot.dev")
+        )
+        self.assertEqual(html_node.tag, "a")
+        self.assertEqual(html_node.props, {"href": "https://www.boot.dev"})
+        self.assertEqual(html_node.to_html(), '<a href="https://www.boot.dev">Boot.dev</a>')
+
+    def test_image(self):
+        html_node = text_node_to_html_node(
+            TextNode("Boots", TextType.IMAGE, "https://example.com/boots.png")
+        )
+        self.assertEqual(html_node.tag, "img")
+        self.assertEqual(html_node.value, "")
+        self.assertEqual(
+            html_node.props,
+            {"src": "https://example.com/boots.png", "alt": "Boots"},
+        )
+
+    def test_invalid_text_type(self):
+        node = TextNode("unknown", "unknown")
+        with self.assertRaises(Exception):
+            text_node_to_html_node(node)
 
 
 if __name__ == "__main__":
